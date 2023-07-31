@@ -1,5 +1,5 @@
 const { verify } = require("jsonwebtoken");
-const AppError = require("../utils/appError");
+const AppError = require("../Utils/appError");
 const authConfig = require("../Configs/auth");
 
 function ensureAuthentication(request, response, next) {
@@ -11,14 +11,13 @@ function ensureAuthentication(request, response, next) {
     
     const [, token] = authHeader.split(" ");
 
-    
     try {
         const { sub: user_id } = verify(token, authConfig.jwt.secret);
         
         request.user = {
             id: user_id,
         };
-       
+        
         return next();
     } catch(error) {
         throw new AppError("JWT Token inválido.", 401);

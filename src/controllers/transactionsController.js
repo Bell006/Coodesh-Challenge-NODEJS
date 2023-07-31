@@ -1,5 +1,5 @@
 const knex = require("../dataBase/knex");
-const AppError = require("../utils/appError");
+const AppError = require("../Utils/appError");
 
 class TransactionsController  {
     async create(request, response) {
@@ -18,6 +18,7 @@ class TransactionsController  {
                 });
             };
         } catch (error) {
+            console.error(error)
             throw new AppError('Não foi possível fazer o upload.', 500);
         };
 
