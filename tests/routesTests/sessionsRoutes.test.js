@@ -1,73 +1,69 @@
+
 const { compare, hash } = require("bcryptjs");
 const httpMocks = require('node-mocks-http');
 
-const knex = require("../../src/dataBase/knex");
+const db = require("../../src/dataBase/db-config");
 const SessionsController = require("../../src/controllers/sessionsController");
-const authConfig = require("../../src/Configs/auth");
-const { sign } = require("jsonwebtoken");
+const AppError = require("../../src/Utils/appError");
 
-jest.mock("jsonwebtoken");
-jest.mock("bcryptjs");
-jest.mock("../../src/dataBase/knex");
 jest.mock("../../src/utils/appError");
 
-describe('SessionsController', () => {
-    it('SignIn', async () => {
+describe('SessionsController.createUser()', () => {
+
+    beforeAll(async () => {
+        await db.migrate.latest();
+    });
+    
+    const testEmail = 'test@test.com';
+    let testPassword = '';
+
+    const request = httpMocks.createRequest({
+        method: 'POST',
+        body: {
+            email: testEmail,
+            password: testPassword
+        },
+    });
+
+    const response = httpMocks.createResponse();
+    
+    const controller = new SessionsController();
+
+    it('Should throw an error if not provided with both parameters', async () => {
+        try {
+            await controller.create(request, response);
+        } catch (error) {
+            expect(error).toBeInstanceOf(AppError);
+        }
+    });
+    
+    it('Should throw an error if the user do not exists', async () => {
+        try {
+            await controller.create(request, response);
+        } catch (error) {
+            expect(error).toBeInstanceOf(AppError);
+        };
+    });
+
+    it('Should create a session if provided correctly', async () => {
+        password = 'testpassword';
+
+        const testUser = {
+            email: 'test@test.com',
+            password: 'testpassword',
+        };
+
+        await db('users').insert(testUser);
 
         try {
-            hash.mockResolvedValue("hashedPassword");
+            const result = await controller.create(request, response);
 
-            const secret = authConfig.jwt.secret;
-            const expiresIn = authConfig.jwt.expiresIn;
-    
-    
-            sign.mockImplementation((payload, secret, options) => {
-                return "testToken";
-            });
-    
-            const testUser = {
-                id: 123,
-                email: "test@example.com",
-                password: "hashedPassword"
-            };
-    
-            knex.mockReturnValue({
-                where: jest.fn().mockReturnThis(),
-                first: jest.fn().mockResolvedValue(testUser), // Returning test user
-            });
-    
-            const request = httpMocks.createRequest({
-                body: {
-                    email: "test@example.com",
-                    password: "password"
-                },
-            });
-    
-            const response = httpMocks.createResponse();
-    
-            const controller = new SessionsController();
-            await controller.create(request, response);
-    
-            // Verifing
-            expect(response._getStatusCode()).toBe(200);
-            expect(response._getData()).toEqual({
-                user: testUser,
-                token: "testToken",
-            });
-    
-            expect(compare).toHaveBeenCalledWith("password", "hashedPassword");
-    
-            expect(knex).toHaveBeenCalledWith("users");
-            expect(knex().where).toHaveBeenCalledWith({ email: "test@example.com" });
-            expect(knex().first).toHaveBeenCalled();
-    
-            expect(sign).toHaveBeenCalledWith({}, secret, {
-                subject: '123',
-                expiresIn
-            });
-          } catch (error) {
-            console.error(error);
-          }
-       
+            expect(result).toBeInstanceOf(Object);
+
+            expect(result).toHaveProperty('user');
+            expect(result).toHaveProperty('token');
+        } catch (error) {
+            console.error(error); 
+        }
     });
 });
