@@ -20,8 +20,11 @@ module.exports = {
     client: "sqlite3",
     connection: ":memory:",
     useNullAsDefault: true,
+    pool: {
+      afterCreate: (conn, cb) => conn.run("PRAGMA foreign_keys = ON", cb)
+    },
     migrations: {
-      directory: path.join(__dirname, "src", "dataBase", "knex", "migrations")
+      directory: path.resolve(__dirname, "src", "dataBase", "knex", "migrations")
     }
   },
 

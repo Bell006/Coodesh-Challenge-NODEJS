@@ -13,29 +13,29 @@ class SessionsController {
 
         if(!email || !password) {
             throw new AppError("Preencha todos os campos.");
-        }
+        };
 
         const user = await knex("users").where({ email }).first();
   
         if(!user) {
             throw new AppError("Email e/ou senha incorretos.");
-        }
+        };
         
         const passwordMatch = await compare(password, user.password);
         
         if(!passwordMatch) {
             throw new AppError("Email e/ou senha incorretos");
-        }
+        };
         
         const { secret, expiresIn } = authConfig.jwt;
         
         const token = sign({}, secret, {
             subject: String(user.id),
             expiresIn
-        })
+        });
 
         return response.json({user, token});
-    }
-}
+    };
+};
 
 module.exports = SessionsController;

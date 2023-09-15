@@ -1,41 +1,97 @@
-const { hash } = require("bcryptjs");
 const knex = require("../../src/dataBase/knex");
-const UsersController = require("../../src/controllers/usersController");
-const httpMocks = require('node-mocks-http');  // library to mock express request and response
+const httpMocks = require('node-mocks-http');
 
-jest.mock("bcryptjs");
-jest.mock("../../src/dataBase/knex");
+const UsersController = require("../../src/controllers/usersController");
+const AppError = require("../../src/Utils/appError");
+
 jest.mock("../../src/utils/appError");
 
-describe("UsersController", () => {
-    it("Creating an user", async () => {
-      try {
-        hash.mockResolvedValue("hashedPassword");
-        knex.mockReturnValue({
-          select: jest.fn().mockReturnThis(),
-          where: jest.fn().mockReturnThis(),
-          then: jest.fn().mockReturnValue([]),
-          insert: jest.fn().mockResolvedValue([1]),
+async function clearDatabase() {
+    await knex("users").truncate();
+}
+
+beforeAll(async () => {
+    await knex.migrate.latest();
+    await clearDatabase();
+});
+
+describe("UsersController.create()", () => {
+
+    it("Should create an user", async () => {
+      const request = httpMocks.createRequest({
+            body: {
+               name: 'testName',
+               email: 'test@test.com',
+               password: '123'
+            }
         });
-  
-        const request = httpMocks.createRequest({
-          body: {
-            name: "Bell Amancio",
-            email: "test@example.com",
-            password: "password",
-          },
-        });
+    
         const response = httpMocks.createResponse();
   
         const controller = new UsersController();
-        await controller.create(request, response);
+
+        try {
+            await controller.create(request, response);
+        } catch(error) {
+            console.log(error);
+        };
   
         expect(response._getStatusCode()).toBe(201);
         expect(response._getData()).toEqual("\"Usuário cadastrado com sucesso!\"");
-        expect(hash).toHaveBeenCalledWith("password", 8);
-        expect(knex).toHaveBeenCalledWith("users");
-      } catch (error) {
-        console.error(error);
-      }
     });
-  });
+
+    it("Should throw an error if provided with an existing email", async () => {
+
+        await knex("users").insert({
+        name: 'Test',
+        email: 'test@test.com',
+        password: '123'
+        })
+
+        const request = httpMocks.createRequest({
+              body: {
+                 name: 'testName',
+                 email: 'test@test.com',
+                 password: '123'
+              }
+          });
+      
+        const response = httpMocks.createResponse();
+
+        const controller = new UsersController();
+
+        try {
+            await controller.create(request, response);
+
+            throw new Error("The function do not threw an exception");
+        } catch(error) {
+            expect(error).toBeInstanceOf(AppError);
+        };
+      });
+
+    it("Should throw an error if provided with a missing parameter", async () => {
+
+        const request = httpMocks.createRequest({
+                body: {
+                    name: 'testName',
+                    email: '',
+                    password: '123'
+                }
+            });
+        
+        const response = httpMocks.createResponse();
+
+        const controller = new UsersController();
+
+        try {
+            await controller.create(request, response);
+
+            throw new Error("The function do not threw an exception");
+        } catch(error) {
+            expect(error).toBeInstanceOf(AppError);
+        };
+    });
+}); 
+
+
+

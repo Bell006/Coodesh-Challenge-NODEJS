@@ -1,69 +1,120 @@
-
-const { compare, hash } = require("bcryptjs");
 const httpMocks = require('node-mocks-http');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const db = require("../../src/dataBase/db-config");
-const SessionsController = require("../../src/controllers/sessionsController");
+const knex = require("../../src/dataBase/knex");
+const SessionsController = require("../../src/Controllers/sessionsController.js");
 const AppError = require("../../src/Utils/appError");
 
-jest.mock("../../src/utils/appError");
+jest.mock("../../src/Utils/appError");
 
-describe('SessionsController.createUser()', () => {
+jest.mock('bcryptjs', () => ({
+    compare: jest.fn(),
+}));
 
-    beforeAll(async () => {
-        await db.migrate.latest();
-    });
-    
-    const testEmail = 'test@test.com';
-    let testPassword = '';
+jest.mock('jsonwebtoken', () => ({
+    sign: jest.fn(),
+}));
 
-    const request = httpMocks.createRequest({
-        method: 'POST',
-        body: {
-            email: testEmail,
-            password: testPassword
-        },
-    });
+async function insertingTestData() {
+    await knex("users")
+    .insert({
+        name: 'Test',
+        email: 'test@test',
+        password: '123'
+    })
+};
 
-    const response = httpMocks.createResponse();
-    
-    const controller = new SessionsController();
+async function clearDatabase() {
+    await knex("users").truncate();
+}
+
+beforeAll(async () => {
+    await knex.migrate.latest();
+    await clearDatabase();
+    await insertingTestData();
+});
+
+describe('SessionsController.create()', () => {
 
     it('Should throw an error if not provided with both parameters', async () => {
+        const testEmail = 'test@test';
+
+        const request = httpMocks.createRequest({
+            body: {
+                email: testEmail,
+                password: ''
+            },
+        });
+
+        const response = httpMocks.createResponse();
+        const sessions = new SessionsController();
+
+        const createSpy = jest.spyOn(sessions, 'create');
+
         try {
-            await controller.create(request, response);
+            await sessions.create(request, response);
+
+            throw new Error("The function do not threw an exception");
         } catch (error) {
             expect(error).toBeInstanceOf(AppError);
         }
+
+        expect(createSpy).toHaveBeenCalled();
     });
     
     it('Should throw an error if the user do not exists', async () => {
+        const testEmail = 'test2@test2';
+        const testPassword = '123';
+
+        const request = httpMocks.createRequest({
+            body: {
+                email: testEmail,
+                password: testPassword
+            },
+        });
+
+        const response = httpMocks.createResponse();
+        
+        const sessions = new SessionsController();
+
         try {
-            await controller.create(request, response);
+            await sessions.create(request, response);
+
+            throw new Error("The function do not threw an exception");
         } catch (error) {
             expect(error).toBeInstanceOf(AppError);
-        };
+        }
     });
 
     it('Should create a session if provided correctly', async () => {
-        password = 'testpassword';
 
-        const testUser = {
-            email: 'test@test.com',
-            password: 'testpassword',
-        };
+        bcrypt.compare.mockResolvedValue(true);
+        jwt.sign.mockReturnValue('testToken87438579');
 
-        await db('users').insert(testUser);
+        const request = httpMocks.createRequest({
+            body: {
+                email: 'test@test',
+                password: '123'
+            }
+        });
+
+        const response = httpMocks.createResponse();
+        
+        const sessions = new SessionsController();
 
         try {
-            const result = await controller.create(request, response);
-
-            expect(result).toBeInstanceOf(Object);
-
-            expect(result).toHaveProperty('user');
-            expect(result).toHaveProperty('token');
+            await sessions.create(request, response);
         } catch (error) {
-            console.error(error); 
-        }
+            console.log(error);
+            expect(error).toBeInstanceOf(AppError);
+        };
+
+        const responseBody = response._getData();
+        const parsedResponse = JSON.parse(responseBody);
+    
+        expect(parsedResponse).toBeInstanceOf(Object);
+        expect(parsedResponse).toHaveProperty('user');
+        expect(parsedResponse).toHaveProperty('token')
     });
-});
+}); 

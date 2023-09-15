@@ -1,7 +1,9 @@
-const knex = require("../dataBase/knex");
+
 const AppError = require("../Utils/appError");
+const knex = require('../dataBase/knex');
 
 class TransactionsController  {
+
     async create(request, response) {
         const user_id = request.user.id;
         const transactions = request.body.transactions;
@@ -22,22 +24,25 @@ class TransactionsController  {
             throw new AppError('Não foi possível fazer o upload.', 500);
         };
 
-        return response.status(201).json("Upload realizado com sucesso!");
+        response.status(201).json("Upload realizado com sucesso!");
     };
 
     async index(request, response) {
         const user_id = request.user.id;
 
-        const transactions = await knex("transactions").where({ user_id }).returning("*");
+        const userExists = await knex("users").where({ id: user_id }).first();
+
+        if (!userExists) {
+            throw new AppError("Usuário não encontrado.", 404);
+        }    
 
         try {
             const transactions = await knex("transactions").where({ user_id }).returning("*");
+
+            return response.status(201).json(transactions);
         } catch(error) {
-            throw new AppError("Não foi possível buscar os dados da transação.")
-        }
-
-        return response.status(201).json(transactions);
-
+            throw new AppError("Não foi possível buscar os dados da transação.");
+        };
     };
 };
  
