@@ -2,7 +2,6 @@ const httpMocks = require('node-mocks-http');
 const { verify } = require('jsonwebtoken');
 
 const ensureAuthentication = require("../../src/Middlewares/ensureAuthentication");
-const TransactionsController = require('../../src/Controllers/transactionsController');
 const AppError = require("../../src/Utils/appError");
 
 jest.mock("../../src/Utils/appError");
