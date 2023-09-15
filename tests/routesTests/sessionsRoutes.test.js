@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const knex = require("../../src/dataBase/knex");
-const SessionsController = require("../../src/Controllers/sessionsController.js");
+const SessionsController = require("../../src/Controllers/sessionsController");
 const AppError = require("../../src/Utils/appError");
 
 jest.mock("../../src/Utils/appError");
