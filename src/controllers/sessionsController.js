@@ -1,10 +1,10 @@
 const knex = require("../dataBase/knex");
-const AppError = require("../Utils/appError");
+const AppError = require("../Utils/appError.js");
 const { compare } = require("bcryptjs");
 
 require("dotenv/config");
 
-const authConfig = require("../Configs/auth");
+const authConfig = require("../Configs/auth.js");
 const { sign } = require("jsonwebtoken");
 
 class SessionsController {

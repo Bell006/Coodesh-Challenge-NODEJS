@@ -3,7 +3,7 @@ require("express-async-errors");
 const cors = require("cors");
 const express = require("express");
 
-const AppError = require("./Utils/appError");
+const AppError = require("./Utils/appError.js");
 const routes = require("./Routes");
 
 //Initializing Express
@@ -15,8 +15,6 @@ app.use(cors());
 
 //Using routes
 app.use(routes);
-
-
 
 app.use((error, request, response, next) => {
     if (error instanceof AppError) {
@@ -35,7 +33,5 @@ app.use((error, request, response, next) => {
 
 
 const PORT = 3333;
-
-
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 

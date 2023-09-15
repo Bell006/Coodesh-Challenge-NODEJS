@@ -1,8 +1,8 @@
 const httpMocks = require('node-mocks-http');
 const knex = require('../../src/dataBase/knex');
 
-const AppError = require("../../src/Utils/appError");
-const TransactionsController = require('../../src/Controllers/transactionsController');
+const AppError = require("../../src/Utils/appError.js");
+const TransactionsController = require('../../src/Controllers/transactionsController.js');
 
 jest.mock("../../src/utils/appError");
 

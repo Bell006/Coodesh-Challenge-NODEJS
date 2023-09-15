@@ -1,8 +1,8 @@
 const knex = require("../../src/dataBase/knex");
 const httpMocks = require('node-mocks-http');
 
-const UsersController = require("../../src/controllers/usersController");
-const AppError = require("../../src/Utils/appError");
+const UsersController = require("../../src/controllers/usersController.js");
+const AppError = require("../../src/Utils/appError.js");
 
 jest.mock("../../src/utils/appError");
 

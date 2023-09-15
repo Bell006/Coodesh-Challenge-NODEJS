@@ -1,8 +1,8 @@
 const Router = require("express");
 
-const usersRouter = require("./usersRoutes");
-const sessionsRouter = require("./sessionsRoutes");
-const transactionsRouter = require("./transactionsRoutes");
+const usersRouter = require("./usersRoutes.js");
+const sessionsRouter = require("./sessionsRoutes.js");
+const transactionsRouter = require("./transactionsRoutes.js");
 
 const routes = Router();
 
